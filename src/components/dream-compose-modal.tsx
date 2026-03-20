@@ -143,6 +143,11 @@ export function DreamComposeModal({
               </Button>
             </div>
           </div>
+
+          <p className="text-xs leading-5 text-muted-foreground">
+            We use a browser cookie to recognize your published dreams. If you switch browsers or lose that cookie,
+            you may no longer be able to access or delete your own records.
+          </p>
         </div>
 
         <DialogFooter>

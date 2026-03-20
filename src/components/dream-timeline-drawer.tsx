@@ -110,6 +110,11 @@ export function DreamTimelineDrawer({
                       />
                     ))
                   )}
+
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    This list is tied to the current browser cookie. Switching browsers or clearing cookies can break
+                    access to your own records.
+                  </p>
                 </div>
               </ScrollArea>
             </TabsContent>
