@@ -5,7 +5,7 @@ import type { CreateDreamInput, DreamEntry } from '@/lib/dream-types';
 
 type DreamRow = {
   id: string;
-  user_id: string;
+  user_id: string | null;
   dream_text: string;
   dream_date: string;
   dream_time_bucket: DreamEntry['dreamTimeBucket'];
@@ -113,7 +113,7 @@ export async function getPublicDreamByShareToken(shareToken: string) {
   return toDreamEntry(data as DreamRow);
 }
 
-export async function listUserDreams(userId: string) {
+export async function listOwnedDreams(userId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('dream_entries')
@@ -126,7 +126,7 @@ export async function listUserDreams(userId: string) {
   return (data as DreamRow[]).map(toDreamEntry);
 }
 
-export async function deleteUserDream(userId: string, dreamId: string) {
+export async function deleteOwnedDream(userId: string, dreamId: string) {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from('dream_entries')

@@ -13,7 +13,7 @@ export interface RoughLocation {
 
 export interface DreamEntry {
   id: string;
-  userId: string;
+  userId: string | null;
   dreamText: string;
   dreamDate: string;
   dreamTimeBucket: DreamTimeBucket;

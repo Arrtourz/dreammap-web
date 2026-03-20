@@ -1,7 +1,10 @@
 import { z } from 'zod';
-import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import { coarsenLocation } from '@/lib/location-utils';
 import { createDreamEntry, listPublicDreams } from '@/lib/dreams-db';
+import { createAdminClient } from '@/utils/supabase/admin';
+import { createOwnerEmail, createOwnerSeed, getOwnerCookieOptions, OWNER_COOKIE_NAME } from '@/lib/owner-session';
 
 const dreamSchema = z.object({
   dreamText: z.string().min(1).max(4000),
@@ -25,18 +28,32 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return Response.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
     const parsed = dreamSchema.safeParse(await req.json());
     if (!parsed.success) {
       return Response.json({ error: 'Invalid dream payload' }, { status: 400 });
+    }
+
+    const cookieStore = await cookies();
+    let ownerUserId = cookieStore.get(OWNER_COOKIE_NAME)?.value;
+    let shouldSetOwnerCookie = false;
+
+    if (!ownerUserId) {
+      const seed = createOwnerSeed();
+      const admin = createAdminClient();
+      const { data, error } = await admin.auth.admin.createUser({
+        email: createOwnerEmail(seed),
+        email_confirm: true,
+        user_metadata: {
+          anonymous_owner: true,
+        },
+      });
+
+      if (error || !data.user) {
+        throw error || new Error('Failed to create anonymous owner');
+      }
+
+      ownerUserId = data.user.id;
+      shouldSetOwnerCookie = true;
     }
 
     const roughLocation = coarsenLocation({
@@ -45,14 +62,20 @@ export async function POST(req: Request) {
       lng: parsed.data.locationLngRough,
     });
 
-    const dream = await createDreamEntry(user.id, {
+    const dream = await createDreamEntry(ownerUserId, {
       ...parsed.data,
       locationLabel: roughLocation.label,
       locationLatRough: roughLocation.lat,
       locationLngRough: roughLocation.lng,
     });
 
-    return Response.json({ dream }, { status: 201 });
+    const response = NextResponse.json({ dream }, { status: 201 });
+
+    if (shouldSetOwnerCookie) {
+      response.cookies.set(OWNER_COOKIE_NAME, ownerUserId, getOwnerCookieOptions());
+    }
+
+    return response;
   } catch {
     return Response.json({ error: 'Failed to create dream' }, { status: 500 });
   }

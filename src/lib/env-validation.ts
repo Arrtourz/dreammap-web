@@ -18,7 +18,7 @@ export function validatePaymentEnvironment(): EnvValidationResult {
     errors.push('SUPABASE_SECRET_KEY is required');
   }
   if (!process.env.NEXT_PUBLIC_APP_URL) {
-    warnings.push('NEXT_PUBLIC_APP_URL is recommended for local auth callback and share links');
+    warnings.push('NEXT_PUBLIC_APP_URL is recommended for share links and metadata');
   }
   if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
     warnings.push('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN missing - globe rendering will fail');

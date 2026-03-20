@@ -75,7 +75,7 @@ export function DreamComposeModal({
         <DialogHeader>
           <DialogTitle>Add a dream</DialogTitle>
           <DialogDescription>
-            Save the dream text, when it happened, and only the rough area where you were sleeping.
+            Publish anonymously with the dream text, when it happened, and only the rough area where you were sleeping.
           </DialogDescription>
         </DialogHeader>
 

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
-import { AuthInitializer } from '@/components/auth/auth-initializer';
 import { QueryProvider } from '@/components/query-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 
@@ -92,10 +91,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <QueryProvider>
-            <AuthInitializer>
-              {children}
-              <Analytics />
-            </AuthInitializer>
+            {children}
+            <Analytics />
           </QueryProvider>
         </ThemeProvider>
       </body>

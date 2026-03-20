@@ -13,7 +13,6 @@ interface DreamTimelineDrawerProps {
   publicDreams: DreamEntry[];
   myDreams: DreamEntry[];
   currentDreamId?: string | null;
-  loggedIn: boolean;
   deletingDreamId?: string | null;
   onToggle: () => void;
   onDreamSelect: (dream: DreamEntry) => void;
@@ -25,7 +24,6 @@ export function DreamTimelineDrawer({
   publicDreams,
   myDreams,
   currentDreamId,
-  loggedIn,
   deletingDreamId,
   onToggle,
   onDreamSelect,
@@ -56,20 +54,18 @@ export function DreamTimelineDrawer({
           <Tabs defaultValue="public" className="gap-0">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
               <TabsList>
-                <TabsTrigger value="public">
-                  <Globe2 className="h-4 w-4" />
-                  Latest
-                </TabsTrigger>
-                {loggedIn ? (
-                  <TabsTrigger value="mine">
-                    <User2 className="h-4 w-4" />
-                    My Dreams
-                  </TabsTrigger>
-                ) : null}
+              <TabsTrigger value="public">
+                <Globe2 className="h-4 w-4" />
+                Latest
+              </TabsTrigger>
+              <TabsTrigger value="mine">
+                <User2 className="h-4 w-4" />
+                My Dreams
+              </TabsTrigger>
               </TabsList>
 
               <p className="text-xs text-muted-foreground">
-                Fresh public dreams with coarse locations only.
+                Fresh public dreams and the ones saved from this browser.
               </p>
             </div>
 
@@ -94,31 +90,29 @@ export function DreamTimelineDrawer({
               </ScrollArea>
             </TabsContent>
 
-            {loggedIn ? (
-              <TabsContent value="mine">
-                <ScrollArea className="h-[48vh] px-5 py-5">
-                  <div className="space-y-4">
-                    {myDreams.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
-                        Your published dreams will appear here.
-                      </div>
-                    ) : (
-                      myDreams.map((dream) => (
-                        <DreamCard
-                          key={dream.id}
-                          dream={dream}
-                          onSelect={() => onDreamSelect(dream)}
-                          onDelete={() => onDeleteDream(dream)}
-                          deleting={deletingDreamId === dream.id}
-                          showDelete
-                          className={cn(currentDreamId === dream.id && 'border-foreground/20 shadow-md')}
-                        />
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-            ) : null}
+            <TabsContent value="mine">
+              <ScrollArea className="h-[48vh] px-5 py-5">
+                <div className="space-y-4">
+                  {myDreams.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
+                      Dreams published from this browser will appear here.
+                    </div>
+                  ) : (
+                    myDreams.map((dream) => (
+                      <DreamCard
+                        key={dream.id}
+                        dream={dream}
+                        onSelect={() => onDreamSelect(dream)}
+                        onDelete={() => onDeleteDream(dream)}
+                        deleting={deletingDreamId === dream.id}
+                        showDelete
+                        className={cn(currentDreamId === dream.id && 'border-foreground/20 shadow-md')}
+                      />
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </TabsContent>
           </Tabs>
         </div>
       </div>

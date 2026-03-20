@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { LogOut, MapPin, Plus, Sparkles } from 'lucide-react';
+import { MapPin, Sparkles } from 'lucide-react';
 import { getRandomGlobeCenter, Globe, GlobeMarker, GlobeRef } from '@/components/globe';
-import { AuthModal } from '@/components/auth/auth-modal';
 import { DreamComposeModal, createEmptyDreamDraft } from '@/components/dream-compose-modal';
 import { DreamTimelineDrawer } from '@/components/dream-timeline-drawer';
 import type { DreamEntry, RoughLocation } from '@/lib/dream-types';
-import { useAuthStore } from '@/lib/stores/use-auth-store';
 import { Button } from '@/components/ui/button';
 import { reverseGeocodeToRoughLocation } from '@/lib/location-utils';
 import { formatDreamDate, getDreamExcerpt, getDreamTimeBucketLabel } from '@/lib/dream-presenters';
@@ -33,8 +31,6 @@ async function fetchMyDreams() {
 export default function Home() {
   const queryClient = useQueryClient();
   const globeRef = useRef<GlobeRef>(null);
-  const { user, signOut } = useAuthStore();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
@@ -51,7 +47,6 @@ export default function Home() {
   const myDreamsQuery = useQuery({
     queryKey: ['my-dreams'],
     queryFn: fetchMyDreams,
-    enabled: !!user,
   });
 
   const createDreamMutation = useMutation({
@@ -173,14 +168,9 @@ export default function Home() {
       return;
     }
 
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     setDraft((current) => ({ ...current, location: roughLocation }));
     setShowComposeModal(true);
-  }, [isPickingLocation, user]);
+  }, [isPickingLocation]);
 
   const handleUseBrowserLocation = async () => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -207,9 +197,9 @@ export default function Home() {
           resolve();
         },
         {
-          enableHighAccuracy: false,
-          timeout: 8000,
-          maximumAge: 60_000,
+          enableHighAccuracy: true,
+          timeout: 12_000,
+          maximumAge: 10_000,
         }
       );
     });
@@ -222,11 +212,6 @@ export default function Home() {
   };
 
   const handleAddDream = () => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     setShowComposeModal(true);
   };
 
@@ -265,35 +250,15 @@ export default function Home() {
               </div>
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              Browse recent dreams by rough place. Publish your own with Google sign-in and only coarse location data.
+              Browse recent dreams by rough place. Publish your own anonymously and store only coarse location data.
             </p>
           </div>
 
           <div className="pointer-events-auto flex flex-col items-end gap-3">
-            <div className="flex flex-wrap items-center justify-end gap-2 rounded-full border bg-background/88 px-3 py-2 shadow-lg backdrop-blur">
-              {user ? (
-                <>
-                  <span className="px-2 text-sm text-muted-foreground">{user.user_metadata.full_name || user.email}</span>
-                  <Button type="button" onClick={handleAddDream}>
-                    <Plus className="h-4 w-4" />
-                    Add dream
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => void signOut()}>
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button type="button" variant="outline" onClick={() => setShowAuthModal(true)}>
-                    Sign in
-                  </Button>
-                  <Button type="button" onClick={handleAddDream}>
-                    <Plus className="h-4 w-4" />
-                    Add dream
-                  </Button>
-                </>
-              )}
+            <div className="flex flex-wrap items-center justify-end gap-2 px-3 py-2">
+              <Button type="button" onClick={handleAddDream}>
+                Add dream
+              </Button>
             </div>
 
             {selectedDream ? (
@@ -331,7 +296,6 @@ export default function Home() {
         publicDreams={publicDreams}
         myDreams={myDreams}
         currentDreamId={selectedDream?.id || null}
-        loggedIn={!!user}
         deletingDreamId={deletingDreamId}
         onToggle={() => setActivityOpen((current) => !current)}
         onDreamSelect={handleDreamSelect}
@@ -348,8 +312,6 @@ export default function Home() {
         onPickOnGlobe={handleStartManualLocationPick}
         submitting={createDreamMutation.isPending}
       />
-
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }

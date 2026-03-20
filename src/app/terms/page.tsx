@@ -11,15 +11,14 @@ export default function TermsOfService() {
 
         <h2>Publishing rules</h2>
         <ul>
-          <li>You must sign in with Google to publish</li>
-          <li>You may browse public content without signing in</li>
+          <li>You may publish anonymously and browse public content without signing in</li>
           <li>You should not post private information about yourself or others</li>
           <li>You should not attempt to upload exact address-level location information</li>
         </ul>
 
         <h2>Ownership and removal</h2>
         <p>
-          You retain responsibility for the content you publish. Dreammap may remove content that breaks these terms. You may delete your own entries from the My Dreams view.
+          You retain responsibility for the content you publish. Dreammap may remove content that breaks these terms. You may delete entries from the same browser that published them through the My Dreams view.
         </p>
 
         <h2>Service disclaimer</h2>
