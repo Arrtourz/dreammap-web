@@ -1,38 +1,23 @@
 'use client';
 
-import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { createClient } from '@/utils/supabase/client-wrapper';
 import { track } from '@vercel/analytics';
+import { createClient } from '@/utils/supabase/client';
 
 interface AuthState {
   user: User | null;
   loading: boolean;
   initialized: boolean;
-  valyuAccessToken: string | null;
-  valyuRefreshToken: string | null;
-  valyuTokenExpiresAt: number | null;
-  hasApiKey: boolean;
-  creditsAvailable: boolean;
 }
 
 interface AuthActions {
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setInitialized: (initialized: boolean) => void;
-  signInWithGoogle: () => Promise<{ data?: any; error?: any }>;
-  signInWithValyu: () => Promise<{ data?: any; error?: any }>;
-  completeValyuAuth: (
-    idToken: string,
-    accessToken: string,
-    refreshToken: string,
-    expiresIn: number
-  ) => Promise<{ success: boolean; error?: string }>;
-  setValyuTokens: (accessToken: string, refreshToken: string, expiresIn: number) => void;
-  getValyuAccessToken: () => string | null;
-  setApiKeyStatus: (hasApiKey: boolean, creditsAvailable: boolean) => void;
-  signOut: () => Promise<{ error?: any }>;
+  signInWithGoogle: () => Promise<{ data?: unknown; error?: Error | null }>;
+  signOut: () => Promise<{ error?: unknown }>;
   initialize: () => void;
 }
 
@@ -44,11 +29,6 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       loading: true,
       initialized: false,
-      valyuAccessToken: null,
-      valyuRefreshToken: null,
-      valyuTokenExpiresAt: null,
-      hasApiKey: false,
-      creditsAvailable: false,
 
       setUser: (user) => set({ user }),
       setLoading: (loading) => set({ loading }),
@@ -70,31 +50,10 @@ export const useAuthStore = create<AuthStore>()(
 
           return result;
         } catch (error) {
-          return { error };
+          return {
+            error: error instanceof Error ? error : new Error('Failed to initiate sign in'),
+          };
         }
-      },
-
-      signInWithValyu: async () => ({
-        error: new Error('Valyu auth is no longer active in Dreammap'),
-      }),
-
-      completeValyuAuth: async () => ({
-        success: false,
-        error: 'Valyu auth is no longer active in Dreammap',
-      }),
-
-      setValyuTokens: () => {
-        set({
-          valyuAccessToken: null,
-          valyuRefreshToken: null,
-          valyuTokenExpiresAt: null,
-        });
-      },
-
-      getValyuAccessToken: () => null,
-
-      setApiKeyStatus: (hasApiKey, creditsAvailable) => {
-        set({ hasApiKey, creditsAvailable });
       },
 
       signOut: async () => {
@@ -102,14 +61,7 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           const result = await supabase.auth.signOut();
-          set({
-            user: null,
-            valyuAccessToken: null,
-            valyuRefreshToken: null,
-            valyuTokenExpiresAt: null,
-            hasApiKey: false,
-            creditsAvailable: false,
-          });
+          set({ user: null });
           return result;
         } catch (error) {
           return { error };
@@ -122,21 +74,21 @@ export const useAuthStore = create<AuthStore>()(
         set({ initialized: true });
 
         const supabase = createClient();
-        const timeoutId = setTimeout(() => {
+        const timeoutId = window.setTimeout(() => {
           set({ loading: false });
         }, 3000);
 
-        supabase.auth
+        void supabase.auth
           .getSession()
           .then(({ data: { session } }: { data: { session: Session | null } }) => {
-            clearTimeout(timeoutId);
+            window.clearTimeout(timeoutId);
             set({
               user: session?.user ?? null,
               loading: false,
             });
           })
           .catch(() => {
-            clearTimeout(timeoutId);
+            window.clearTimeout(timeoutId);
             set({
               user: null,
               loading: false,
@@ -146,27 +98,18 @@ export const useAuthStore = create<AuthStore>()(
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange(
-          async (event: AuthChangeEvent, session: Session | null) => {
+          (event: AuthChangeEvent, session: Session | null) => {
             set({
               user: session?.user ?? null,
               loading: false,
             });
 
             if (event === 'SIGNED_OUT') {
-              set({
-                user: null,
-                valyuAccessToken: null,
-                valyuRefreshToken: null,
-                valyuTokenExpiresAt: null,
-                hasApiKey: false,
-                creditsAvailable: false,
-              });
+              set({ user: null });
 
-              if (typeof window !== 'undefined') {
-                setTimeout(() => {
-                  window.dispatchEvent(new CustomEvent('auth:signout'));
-                }, 100);
-              }
+              window.setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('auth:signout'));
+              }, 100);
             }
 
             if (event === 'SIGNED_IN' && session?.user) {
@@ -177,11 +120,7 @@ export const useAuthStore = create<AuthStore>()(
           }
         );
 
-        if (typeof window !== 'undefined') {
-          window.addEventListener('beforeunload', () => {
-            subscription?.unsubscribe();
-          });
-        }
+        window.addEventListener('beforeunload', () => subscription?.unsubscribe(), { once: true });
       },
     }),
     {

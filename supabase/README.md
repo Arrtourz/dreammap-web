@@ -4,7 +4,10 @@ This directory contains the SQL needed to back the Dreammap app in Supabase.
 
 ## Quick setup
 
-Run `schema.sql` in the Supabase SQL editor. The current Dreammap app depends on the `dream_entries` table defined there.
+1. Run `schema.sql` in the Supabase SQL editor.
+2. Run `policies.sql` to enable RLS for `dream_entries`.
+
+The current Dreammap app depends only on the `dream_entries` table.
 
 ## Keys used by the app
 

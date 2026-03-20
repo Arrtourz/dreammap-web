@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Dreammap',
     description:
-      'A public globe of remembered dreams with rough sleep-locations and monthly browsing.',
+      'A public globe of remembered dreams with rough sleep-locations and a latest activity feed.',
     url: baseUrl,
     siteName: 'Dreammap',
     images: [
