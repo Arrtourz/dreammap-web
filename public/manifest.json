@@ -1,0 +1,22 @@
+{
+  "name": "Dreammap",
+  "short_name": "Dreammap",
+  "description": "Public dream-sharing globe with rough sleep-locations and monthly browsing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}
